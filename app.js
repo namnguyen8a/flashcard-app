@@ -2,10 +2,18 @@ window.onload = async () => {
   try {
     await loadAllData();
     renderProgress();
+
+    if (!allQuestions || allQuestions.length === 0) {
+      throw new Error("No questions loaded from xlsx files.");
+    }
+
     startQuiz("all");
   } catch (err) {
     console.error(err);
-    document.getElementById("question").innerText =
-      "Failed to load .xlsx files. Check console and repo upload.";
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+
+    if (questionEl) questionEl.innerText = "LOAD ERROR: " + err.message;
+    if (optionsEl) optionsEl.innerHTML = "";
   }
 };
