@@ -1,28 +1,54 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Flashcard App</title>
+  <title>AWS Quiz App</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <h1>Flashcards</h1>
+<h1>AWS Quiz Practice</h1>
 
-  <div id="card">
-    <p id="question"></p>
-    <p id="answer" class="hidden"></p>
+<div id="modeSelect">
+  <button onclick="startQuiz('all')">All Questions</button>
+  <button onclick="startQuiz('exam')">Mock Exam (65 Q)</button>
+  <button onclick="startQuiz('topic1')">Cloud Concepts</button>
+  <button onclick="startQuiz('topic2')">Tech & Services</button>
+  <button onclick="startQuiz('topic3')">Security + Billing</button>
+</div>
+
+<hr>
+
+<div id="quizContainer" class="hidden">
+  <h2 id="question"></h2>
+
+  <div id="options"></div>
+
+  <div class="tabs">
+    <button onclick="toggleExplain()">Explanation</button>
+    <button onclick="toggleNote()">Note</button>
   </div>
 
-  <button onclick="showAnswer()">Show Answer</button>
-  <button onclick="nextCard()">Next</button>
+  <div id="explain" class="hidden"></div>
+  <div id="note" class="hidden"></div>
 
-  <hr>
+  <br>
+  <button onclick="nextQuestion()">Next</button>
+</div>
 
-  <h2>Add New Card</h2>
-  <input id="qInput" placeholder="Question">
-  <input id="aInput" placeholder="Answer">
-  <button onclick="addCard()">Add</button>
+<hr>
 
-  <script src="app.js"></script>
+<div>
+  <h2>Progress</h2>
+  <pre id="progress"></pre>
+</div>
+
+<!-- SheetJS -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<script src="dataLoader.js"></script>
+<script src="progress.js"></script>
+<script src="quizEngine.js"></script>
+<script src="app.js"></script>
+
 </body>
 </html>

@@ -3,12 +3,23 @@ body {
   text-align: center;
 }
 
-#card {
-  border: 1px solid #ccc;
-  padding: 20px;
-  margin: 20px;
-}
-
 .hidden {
   display: none;
+}
+
+.option {
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+.correct {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.wrong {
+  background-color: #f44336;
+  color: white;
 }
