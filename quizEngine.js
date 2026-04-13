@@ -1,6 +1,6 @@
 let currentQuiz = [];
 let currentIndex = 0;
-let hasAnswered = false; // Ngăn chặn user đổi đáp án khi đã chọn
+let hasAnswered = false; 
 
 function shuffle(array) {
   return array.sort(() => Math.random() - 0.5);
@@ -12,17 +12,15 @@ function generateExam() {
   let sec = allQuestions.filter(q => q.topic === "security");
 
   return [
-    ...shuffle(cloud).slice(0, Math.floor(65 * 0.24)),
-    ...shuffle(tech).slice(0, Math.floor(65 * 0.34)),
-    ...shuffle(sec).slice(0, 65 - Math.floor(65 * 0.24) - Math.floor(65 * 0.34))
+    ...shuffle(cloud).slice(0, 15),
+    ...shuffle(tech).slice(0, 22),
+    ...shuffle(sec).slice(0, 28)
   ];
 }
 
-function startQuiz(mode) {
+window.startQuiz = function(mode) {
   document.getElementById("quizContainer").classList.remove("hidden");
-  document.getElementById("nextBtn").classList.remove("hidden");
-  document.querySelector(".tabs").classList.remove("hidden");
-
+  
   if (mode === "all") currentQuiz = shuffle([...allQuestions]);
   else if (mode === "exam") currentQuiz = generateExam();
   else if (mode === "topic1") currentQuiz = shuffle(allQuestions.filter(q => q.topic === "cloud"));
@@ -30,71 +28,75 @@ function startQuiz(mode) {
   else currentQuiz = shuffle(allQuestions.filter(q => q.topic === "security"));
 
   currentIndex = 0;
-  renderQuestion();
-}
+  window.renderQuestion();
+};
 
-function renderQuestion() {
-  if (!currentQuiz || currentQuiz.length === 0) {
-    document.getElementById("question").innerText = "Không có câu hỏi nào trong mục này.";
-    document.getElementById("options").innerHTML = "";
-    return;
-  }
-
+window.renderQuestion = function() {
+  if (currentQuiz.length === 0) return;
+  
   hasAnswered = false;
   let q = currentQuiz[currentIndex];
   
-  // Hiển thị vị trí câu hỏi
   document.getElementById("question").innerText = `Câu ${currentIndex + 1}/${currentQuiz.length}: ${q.question}`;
-
+  
   let optDiv = document.getElementById("options");
   optDiv.innerHTML = "";
 
   ["A","B","C","D"].forEach((label, i) => {
-    if (!q.options[i]) return; // Nếu option rỗng thì bỏ qua
+    if (!q.options[i]) return;
 
     let btn = document.createElement("div");
     btn.className = "option";
     btn.innerText = `${label}. ${q.options[i]}`;
+    btn.dataset.label = label; // Lưu label vào data attribute để dễ tìm
 
-    btn.onclick = () => selectAnswer(btn, label === q.correct, q.id, q.topic);
+    // Bắt sự kiện click bằng addEventListener an toàn hơn onclick
+    btn.addEventListener("click", function() {
+      window.selectAnswer(btn, label === q.correct, q.id, q.topic, q.correct);
+    });
+
     optDiv.appendChild(btn);
   });
 
-  document.getElementById("explain").innerHTML = `<strong>Giải thích:</strong> ${q.explain || "Không có giải thích"}`;
-  document.getElementById("note").innerHTML = `<strong>Ghi chú:</strong> ${q.note || "Không có ghi chú"}`;
-
+  document.getElementById("explain").innerHTML = `<strong>Giải thích:</strong> ${q.explain || "Không có"}`;
+  document.getElementById("note").innerHTML = `<strong>Ghi chú:</strong> ${q.note || "Không có"}`;
   document.getElementById("explain").classList.add("hidden");
   document.getElementById("note").classList.add("hidden");
-}
+};
 
-function selectAnswer(btn, isCorrect, qId, topic) {
-  if (hasAnswered) return; // Chỉ cho phép chọn 1 lần
-  hasAnswered = true;
+window.selectAnswer = function(btn, isCorrect, qId, topic, correctLabel) {
+  if (hasAnswered) return; 
+  hasAnswered = true; // Khóa không cho chọn lại
 
-  btn.classList.add(isCorrect ? "correct" : "wrong");
+  if (isCorrect) {
+    btn.classList.add("correct");
+  } else {
+    btn.classList.add("wrong");
+    // Tự động tìm và bôi xanh đáp án đúng
+    const allOptions = document.querySelectorAll(".option");
+    allOptions.forEach(opt => {
+      if (opt.dataset.label === correctLabel) {
+        opt.classList.add("correct");
+      }
+    });
+  }
 
-  // Hiển thị luôn giải thích khi đã trả lời xong
   document.getElementById("explain").classList.remove("hidden");
+  
+  if (window.updateProgress && window.renderProgress) {
+    window.updateProgress(qId, isCorrect, topic);
+    window.renderProgress();
+  }
+};
 
-  updateProgress(qId, isCorrect, topic);
-  renderProgress();
-}
-
-function nextQuestion() {
+window.nextQuestion = function() {
   currentIndex++;
-
   if (currentIndex >= currentQuiz.length) {
     alert("Bạn đã hoàn thành bài thi!");
     return;
   }
+  window.renderQuestion();
+};
 
-  renderQuestion();
-}
-
-function toggleExplain() {
-  document.getElementById("explain").classList.toggle("hidden");
-}
-
-function toggleNote() {
-  document.getElementById("note").classList.toggle("hidden");
-}
+window.toggleExplain = function() { document.getElementById("explain").classList.toggle("hidden"); };
+window.toggleNote = function() { document.getElementById("note").classList.toggle("hidden"); };

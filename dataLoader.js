@@ -6,7 +6,6 @@ function detectTopic(file) {
   return "security";
 }
 
-// Hàm này giúp tìm dữ liệu bất kể tên cột viết hoa/thường hay bị dư khoảng trắng
 function getCellRobust(row, possibleNames) {
   const lowerNames = possibleNames.map(n => n.toLowerCase());
   for (let key in row) {
@@ -17,7 +16,18 @@ function getCellRobust(row, possibleNames) {
   return "";
 }
 
-async function loadAllData() {
+// Hàm này đảm bảo lấy ra đúng chữ cái A, B, C, D dù Excel có viết "Option A", "A ", hay " a "
+function cleanCorrectAnswer(rawAnswer) {
+  if (!rawAnswer) return "";
+  const str = String(rawAnswer).toUpperCase();
+  if (str.includes("A")) return "A";
+  if (str.includes("B")) return "B";
+  if (str.includes("C")) return "C";
+  if (str.includes("D")) return "D";
+  return str.trim();
+}
+
+window.loadAllData = async function() {
   allQuestions = [];
 
   const files = [
@@ -29,51 +39,37 @@ async function loadAllData() {
 
   for (const file of files) {
     try {
-      // cache: "no-store" giúp Github Pages luôn tải file Excel mới nhất
       const res = await fetch(file, { cache: "no-store" });
-
-      if (!res.ok) {
-        console.warn(`[Cảnh báo] Không thể tải ${file} (Mã lỗi: ${res.status}) - Bỏ qua file này.`);
-        continue; // Bỏ qua file lỗi, tiếp tục load file khác
-      }
+      if (!res.ok) continue;
 
       const data = await res.arrayBuffer();
       const workbook = XLSX.read(data, { type: "array" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-
       const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
       rows.forEach((row, index) => {
-        // Tìm cột chứa câu hỏi (chấp nhận các tên cột biến thể)
         const question = getCellRobust(row, ["Question", "question", "Câu hỏi"]);
-        if (!question) return; // Nếu dòng không có câu hỏi thì bỏ qua
-
-        const optionA = getCellRobust(row, ["Option A", "A"]);
-        const optionB = getCellRobust(row, ["Option B", "B"]);
-        const optionC = getCellRobust(row, ["Option C", "C"]);
-        const optionD = getCellRobust(row, ["Option D", "D"]);
-        const correct = getCellRobust(row, ["Correct Answer", "Answer", "Đáp án"]);
-        const explain = getCellRobust(row, ["Detail Explaination", "Detail Explanation", "Explain", "Giải thích"]);
-        const note = getCellRobust(row, ["Note", "Ghi chú"]);
+        if (!question) return;
 
         allQuestions.push({
           id: `${file}-${index}`,
           question: question,
-          options: [optionA, optionB, optionC, optionD],
-          correct: correct,
-          explain: explain,
-          note: note,
+          options: [
+            getCellRobust(row, ["Option A", "A"]),
+            getCellRobust(row, ["Option B", "B"]),
+            getCellRobust(row, ["Option C", "C"]),
+            getCellRobust(row, ["Option D", "D"])
+          ],
+          correct: cleanCorrectAnswer(getCellRobust(row, ["Correct Answer", "Answer", "Đáp án"])),
+          explain: getCellRobust(row, ["Detail Explaination", "Detail Explanation", "Explain"]),
+          note: getCellRobust(row, ["Note", "Ghi chú"]),
           topic: detectTopic(file)
         });
       });
     } catch (error) {
-      console.error(`Lỗi khi xử lý file ${file}:`, error);
+      console.error(`Lỗi file ${file}:`, error);
     }
   }
 
-  if (allQuestions.length === 0) {
-    throw new Error("Không có dữ liệu câu hỏi nào! Hãy kiểm tra lại file Excel (Sheet đầu tiên, Tên các cột ở dòng 1).");
-  }
-
-  console.log(`✅ Đã tải thành công ${allQuestions.length} câu hỏi.`);
-}
+  if (allQuestions.length === 0) throw new Error("Không có câu hỏi nào được tải.");
+};
