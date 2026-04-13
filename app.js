@@ -1,19 +1,21 @@
 window.onload = async () => {
+  const quizContainer = document.getElementById("quizContainer");
+  const questionEl = document.getElementById("question");
+  
   try {
+    questionEl.innerText = "Đang tải dữ liệu câu hỏi, vui lòng đợi...";
+    quizContainer.classList.remove("hidden");
+    
     await loadAllData();
     renderProgress();
-
-    if (!allQuestions || allQuestions.length === 0) {
-      throw new Error("No questions loaded from xlsx files.");
-    }
-
     startQuiz("all");
   } catch (err) {
     console.error(err);
-    const questionEl = document.getElementById("question");
-    const optionsEl = document.getElementById("options");
-
-    if (questionEl) questionEl.innerText = "LOAD ERROR: " + err.message;
-    if (optionsEl) optionsEl.innerHTML = "";
+    // Xóa UI thừa và in lỗi ra màn hình nếu load thất bại
+    document.getElementById("options").innerHTML = "";
+    document.querySelector(".tabs").classList.add("hidden");
+    document.getElementById("nextBtn").classList.add("hidden");
+    
+    questionEl.innerHTML = `<span style="color:red;">❌ Lỗi: ${err.message}</span><br><br>Vui lòng mở Console (F12) để xem chi tiết.`;
   }
 };
