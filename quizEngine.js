@@ -13,7 +13,7 @@ function generateExam() {
   return [
     ...shuffle(cloud).slice(0, Math.floor(65 * 0.24)),
     ...shuffle(tech).slice(0, Math.floor(65 * 0.34)),
-    ...shuffle(sec).slice(0, Math.floor(65 * 0.42))
+    ...shuffle(sec).slice(0, 65 - Math.floor(65 * 0.24) - Math.floor(65 * 0.34))
   ];
 }
 
@@ -43,26 +43,40 @@ function renderQuestion() {
     btn.className = "option";
     btn.innerText = `${label}. ${q.options[i]}`;
 
-    btn.onclick = () => selectAnswer(btn, label === q.correct, currentIndex);
+    btn.onclick = () => selectAnswer(btn, label === q.correct, q.id, q.topic);
 
     optDiv.appendChild(btn);
   });
 
-  document.getElementById("explain").innerText = q.explain;
-  document.getElementById("note").innerText = q.note;
+  document.getElementById("explain").innerText = q.explain || "No explanation";
+  document.getElementById("note").innerText = q.note || "No note";
+
+  document.getElementById("explain").classList.add("hidden");
+  document.getElementById("note").classList.add("hidden");
 }
 
-function selectAnswer(btn, isCorrect, index) {
+function selectAnswer(btn, isCorrect, qId, topic) {
   btn.classList.add(isCorrect ? "correct" : "wrong");
-  updateProgress(index, isCorrect);
+
+  updateProgress(qId, isCorrect, topic);
   renderProgress();
 }
 
 function nextQuestion() {
   currentIndex++;
+
   if (currentIndex >= currentQuiz.length) {
     alert("Done!");
     return;
   }
+
   renderQuestion();
+}
+
+function toggleExplain() {
+  document.getElementById("explain").classList.toggle("hidden");
+}
+
+function toggleNote() {
+  document.getElementById("note").classList.toggle("hidden");
 }

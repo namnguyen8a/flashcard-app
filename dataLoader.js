@@ -8,16 +8,21 @@ async function loadAllData() {
     "raw_csv_quiz/Quiz_Week04.xlsx"
   ];
 
-  for (let i = 0; i < files.length; i++) {
-    const res = await fetch(files[i]);
-    const data = await res.arrayBuffer();
-    const workbook = XLSX.read(data);
+  for (let f = 0; f < files.length; f++) {
+    const file = files[f];
 
+    const res = await fetch(file);
+    const data = await res.arrayBuffer();
+
+    const workbook = XLSX.read(data);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const json = XLSX.utils.sheet_to_json(sheet);
 
-    json.forEach(row => {
+    json.forEach((row, index) => {
+      if (!row["Question"]) return;
+
       allQuestions.push({
+        id: file + "_" + index, // 🔥 UNIQUE ID
         question: row["Question"],
         options: [
           row["Option A"],
@@ -28,7 +33,7 @@ async function loadAllData() {
         correct: row["Correct Answer"],
         explain: row["Detail Explaination"] || "",
         note: row["Note"] || "",
-        topic: detectTopic(files[i])
+        topic: detectTopic(file)
       });
     });
   }
