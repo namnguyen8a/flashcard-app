@@ -35,5 +35,5 @@ window.renderProgress = function() {
     let acc = s.total ? ((s.correct / s.total) * 100).toFixed(1) : 0;
     output += `${topic.toUpperCase()}:\nAccuracy: ${acc}%\nAttempts: ${s.total}\n\n`;
   }
-  document.getElementById("progress").innerText = output;
+  document.getElementById("progress").innerText = output || "Chưa có dữ liệu";
 };

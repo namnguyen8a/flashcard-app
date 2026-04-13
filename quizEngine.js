@@ -1,102 +1,74 @@
-let currentQuiz = [];
-let currentIndex = 0;
-let hasAnswered = false; 
+window.allQuestions = [];
 
-function shuffle(array) {
-  return array.sort(() => Math.random() - 0.5);
+function detectTopic(file) {
+  if (file.includes("Week01")) return "cloud";
+  if (file.includes("Week02") || file.includes("Week03")) return "tech";
+  return "security";
 }
 
-function generateExam() {
-  let cloud = allQuestions.filter(q => q.topic === "cloud");
-  let tech = allQuestions.filter(q => q.topic === "tech");
-  let sec = allQuestions.filter(q => q.topic === "security");
+function getCellRobust(row, possibleNames) {
+  const lowerNames = possibleNames.map(n => n.toLowerCase());
+  for (let key in row) {
+    if (lowerNames.includes(key.trim().toLowerCase())) {
+      return String(row[key]).trim();
+    }
+  }
+  return "";
+}
 
-  return [
-    ...shuffle(cloud).slice(0, 15),
-    ...shuffle(tech).slice(0, 22),
-    ...shuffle(sec).slice(0, 28)
+function cleanCorrectAnswer(raw) {
+  if (!raw) return "";
+  const str = String(raw).toUpperCase();
+  if (str.includes("A")) return "A";
+  if (str.includes("B")) return "B";
+  if (str.includes("C")) return "C";
+  if (str.includes("D")) return "D";
+  return str.trim();
+}
+
+window.loadAllData = async function() {
+  window.allQuestions = [];
+  const files = [
+    "raw_csv_quiz/Quiz_Week01.xlsx",
+    "raw_csv_quiz/Quiz_Week02.xlsx",
+    "raw_csv_quiz/Quiz_Week03.xlsx",
+    "raw_csv_quiz/Quiz_Week04.xlsx"
   ];
-}
 
-window.startQuiz = function(mode) {
-  document.getElementById("quizContainer").classList.remove("hidden");
-  
-  if (mode === "all") currentQuiz = shuffle([...allQuestions]);
-  else if (mode === "exam") currentQuiz = generateExam();
-  else if (mode === "topic1") currentQuiz = shuffle(allQuestions.filter(q => q.topic === "cloud"));
-  else if (mode === "topic2") currentQuiz = shuffle(allQuestions.filter(q => q.topic === "tech"));
-  else currentQuiz = shuffle(allQuestions.filter(q => q.topic === "security"));
+  for (const file of files) {
+    try {
+      const res = await fetch(file, { cache: "no-store" });
+      if (!res.ok) continue;
 
-  currentIndex = 0;
-  window.renderQuestion();
-};
+      const data = await res.arrayBuffer();
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-window.renderQuestion = function() {
-  if (currentQuiz.length === 0) return;
-  
-  hasAnswered = false;
-  let q = currentQuiz[currentIndex];
-  
-  document.getElementById("question").innerText = `Câu ${currentIndex + 1}/${currentQuiz.length}: ${q.question}`;
-  
-  let optDiv = document.getElementById("options");
-  optDiv.innerHTML = "";
+      rows.forEach((row, index) => {
+        const question = getCellRobust(row, ["Question", "question"]);
+        if (!question) return;
 
-  ["A","B","C","D"].forEach((label, i) => {
-    if (!q.options[i]) return;
-
-    let btn = document.createElement("div");
-    btn.className = "option";
-    btn.innerText = `${label}. ${q.options[i]}`;
-    btn.dataset.label = label; // Lưu label vào data attribute để dễ tìm
-
-    // Bắt sự kiện click bằng addEventListener an toàn hơn onclick
-    btn.addEventListener("click", function() {
-      window.selectAnswer(btn, label === q.correct, q.id, q.topic, q.correct);
-    });
-
-    optDiv.appendChild(btn);
-  });
-
-  document.getElementById("explain").innerHTML = `<strong>Giải thích:</strong> ${q.explain || "Không có"}`;
-  document.getElementById("note").innerHTML = `<strong>Ghi chú:</strong> ${q.note || "Không có"}`;
-  document.getElementById("explain").classList.add("hidden");
-  document.getElementById("note").classList.add("hidden");
-};
-
-window.selectAnswer = function(btn, isCorrect, qId, topic, correctLabel) {
-  if (hasAnswered) return; 
-  hasAnswered = true; // Khóa không cho chọn lại
-
-  if (isCorrect) {
-    btn.classList.add("correct");
-  } else {
-    btn.classList.add("wrong");
-    // Tự động tìm và bôi xanh đáp án đúng
-    const allOptions = document.querySelectorAll(".option");
-    allOptions.forEach(opt => {
-      if (opt.dataset.label === correctLabel) {
-        opt.classList.add("correct");
-      }
-    });
+        window.allQuestions.push({
+          id: `${file}-${index}`,
+          question: question,
+          options: [
+            getCellRobust(row, ["Option A", "A"]),
+            getCellRobust(row, ["Option B", "B"]),
+            getCellRobust(row, ["Option C", "C"]),
+            getCellRobust(row, ["Option D", "D"])
+          ],
+          correct: cleanCorrectAnswer(getCellRobust(row, ["Correct Answer", "Answer"])),
+          explain: getCellRobust(row, ["Detail Explaination", "Detail Explanation", "Explain"]),
+          note: getCellRobust(row, ["Note"]),
+          topic: detectTopic(file)
+        });
+      });
+    } catch (error) {
+      console.error(`Lỗi file ${file}:`, error);
+    }
   }
 
-  document.getElementById("explain").classList.remove("hidden");
-  
-  if (window.updateProgress && window.renderProgress) {
-    window.updateProgress(qId, isCorrect, topic);
-    window.renderProgress();
-  }
+  if (window.allQuestions.length === 0) throw new Error("Không có dữ liệu.");
+  console.log(`Loaded questions: ${window.allQuestions.length}`);
 };
-
-window.nextQuestion = function() {
-  currentIndex++;
-  if (currentIndex >= currentQuiz.length) {
-    alert("Bạn đã hoàn thành bài thi!");
-    return;
-  }
-  window.renderQuestion();
-};
-
-window.toggleExplain = function() { document.getElementById("explain").classList.toggle("hidden"); };
-window.toggleNote = function() { document.getElementById("note").classList.toggle("hidden"); };

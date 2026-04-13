@@ -11,7 +11,7 @@ body {
 .option {
   padding: 15px;
   margin: 10px 0;
-  border: 2px solid #ccc; /* Viền dày hơn */
+  border: 2px solid #ccc;
   border-radius: 5px;
   cursor: pointer;
   text-align: left;
@@ -20,7 +20,6 @@ body {
   transition: all 0.2s ease;
 }
 
-/* Hiệu ứng khi di chuột qua để biết nút có thể bấm */
 .option:hover {
   background-color: #e2e8f0;
   border-color: #94a3b8;

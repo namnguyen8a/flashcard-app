@@ -11,11 +11,11 @@
 <h1>AWS Quiz Practice</h1>
 
 <div id="modeSelect">
-  <button onclick="startQuiz('all')">All Questions</button>
-  <button onclick="startQuiz('exam')">Mock Exam (65 Q)</button>
-  <button onclick="startQuiz('topic1')">Cloud Concepts</button>
-  <button onclick="startQuiz('topic2')">Tech & Services</button>
-  <button onclick="startQuiz('topic3')">Security + Billing</button>
+  <button id="btnModeAll">All Questions</button>
+  <button id="btnModeExam">Mock Exam (65 Q)</button>
+  <button id="btnModeCloud">Cloud Concepts</button>
+  <button id="btnModeTech">Tech & Services</button>
+  <button id="btnModeSec">Security + Billing</button>
 </div>
 
 <hr>
@@ -26,15 +26,15 @@
   <div id="options"></div>
 
   <div class="tabs">
-    <button onclick="toggleExplain()">Show/Hide Explanation</button>
-    <button onclick="toggleNote()">Show/Hide Note</button>
+    <button id="btnToggleExplain">Show/Hide Explanation</button>
+    <button id="btnToggleNote">Show/Hide Note</button>
   </div>
 
   <div id="explain" class="hidden info-box"></div>
   <div id="note" class="hidden info-box"></div>
 
   <br>
-  <button id="nextBtn" onclick="nextQuestion()">Next Question ➡️</button>
+  <button id="btnNext">Next Question ➡️</button>
 </div>
 
 <hr>
@@ -44,9 +44,10 @@
   <pre id="progress"></pre>
 </div>
 
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-<script src="dataLoader.js"></script>
 <script src="progress.js"></script>
+<script src="dataLoader.js"></script>
 <script src="quizEngine.js"></script>
 <script src="app.js"></script>
 
