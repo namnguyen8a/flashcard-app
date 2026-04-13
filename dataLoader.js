@@ -16,10 +16,9 @@ function getCellRobust(row, possibleNames) {
   return "";
 }
 
-// Hàm này đảm bảo lấy ra đúng chữ cái A, B, C, D dù Excel có viết "Option A", "A ", hay " a "
-function cleanCorrectAnswer(rawAnswer) {
-  if (!rawAnswer) return "";
-  const str = String(rawAnswer).toUpperCase();
+function cleanCorrectAnswer(raw) {
+  if (!raw) return "";
+  const str = String(raw).toUpperCase();
   if (str.includes("A")) return "A";
   if (str.includes("B")) return "B";
   if (str.includes("C")) return "C";
@@ -27,9 +26,8 @@ function cleanCorrectAnswer(rawAnswer) {
   return str.trim();
 }
 
-window.loadAllData = async function() {
+async function loadAllData() {
   allQuestions = [];
-
   const files = [
     "raw_csv_quiz/Quiz_Week01.xlsx",
     "raw_csv_quiz/Quiz_Week02.xlsx",
@@ -61,7 +59,7 @@ window.loadAllData = async function() {
             getCellRobust(row, ["Option D", "D"])
           ],
           correct: cleanCorrectAnswer(getCellRobust(row, ["Correct Answer", "Answer", "Đáp án"])),
-          explain: getCellRobust(row, ["Detail Explaination", "Detail Explanation", "Explain"]),
+          explain: getCellRobust(row, ["Detail Explaination", "Detail Explanation", "Explain", "Giải thích"]),
           note: getCellRobust(row, ["Note", "Ghi chú"]),
           topic: detectTopic(file)
         });
@@ -71,5 +69,6 @@ window.loadAllData = async function() {
     }
   }
 
-  if (allQuestions.length === 0) throw new Error("Không có câu hỏi nào được tải.");
-};
+  if (allQuestions.length === 0) throw new Error("Không có dữ liệu câu hỏi. Hãy kiểm tra lại file Excel.");
+  console.log(`Loaded questions: ${allQuestions.length}`);
+}
