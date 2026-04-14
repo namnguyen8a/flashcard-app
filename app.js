@@ -1,5 +1,6 @@
 window.onload = async () => {
   const dashEl = document.getElementById("dashboard");
+  const loadingEl = document.getElementById("loadingScreen");
   const statWrong = document.getElementById("statWrong");
   const statToday = document.getElementById("statToday");
   const statTotal = document.getElementById("statTotal");
@@ -24,17 +25,21 @@ window.onload = async () => {
   document.getElementById("btnNext").addEventListener("click", nextQuestion);
   
   document.getElementById("btnBackHome").addEventListener("click", () => {
-    window.location.reload(); // Cách sạch sẽ nhất để về Dashboard
+    window.location.reload(); 
   });
 
   try {
-    dashEl.innerHTML = `<h2>Đang tải dữ liệu từ Excel...</h2>`;
+    // Hiện màn hình loading, đợi load data
+    loadingEl.classList.remove("hidden");
+    dashEl.classList.add("hidden");
+    
     await loadAllData(); 
     
-    // Khôi phục lại HTML của Dashboard
-    window.location.reload; 
+    // Tải xong -> Ẩn loading, Hiện Dashboard
+    loadingEl.classList.add("hidden");
+    dashEl.classList.remove("hidden");
     
-    // Cập nhật thống kê "Hôm nay học gì"
+    // Cập nhật thống kê
     const wrongQs = getWrongQuestions(allQuestions);
     const reviewQs = getReviewTodayQuestions(allQuestions);
     const general = getGeneralStats();
@@ -55,6 +60,6 @@ window.onload = async () => {
 
   } catch (err) {
     console.error(err);
-    document.body.innerHTML = `<h2 style="color:red;text-align:center;">Lỗi: ${err.message}</h2>`;
+    loadingEl.innerHTML = `<h2 style="color:red;">Lỗi: ${err.message}</h2>`;
   }
 };

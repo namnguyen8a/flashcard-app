@@ -4,14 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AWS Adaptive Flashcards</title>
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 
 <h1>🚀 AWS Adaptive Quiz</h1>
 
-<!-- DASHBOARD VIEW -->
-<div id="dashboard">
+<!-- MÀN HÌNH LOADING MỚI -->
+<div id="loadingScreen" style="text-align: center; margin-top: 50px;">
+  <h2 style="color: #3b82f6;">⏳ Đang tải dữ liệu câu hỏi...</h2>
+  <p>Vui lòng đợi vài giây...</p>
+</div>
+
+<!-- DASHBOARD VIEW (Mặc định ẩn) -->
+<div id="dashboard" class="hidden">
   <div class="stats-grid">
     <div class="stat-box">
       <h3>🔥 Câu yếu / Sai</h3>
@@ -76,10 +82,10 @@
 
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-<script src="progress.js?v=4"></script>
-<script src="dataLoader.js?v=4"></script>
-<script src="quizEngine.js?v=4"></script>
-<script src="app.js?v=4"></script>
+<script src="progress.js?v=5"></script>
+<script src="dataLoader.js?v=5"></script>
+<script src="quizEngine.js?v=5"></script>
+<script src="app.js?v=5"></script>
 
 </body>
 </html>
