@@ -3,26 +3,63 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AWS Quiz App</title>
-  <link rel="stylesheet" href="style.css?v=3">
+  <title>AWS Adaptive Flashcards</title>
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 
-<h1>AWS Quiz Practice</h1>
+<h1>🚀 AWS Adaptive Quiz</h1>
 
-<div id="modeSelect">
-  <button id="btnModeAll">All Questions</button>
-  <button id="btnModeExam">Mock Exam (65 Q)</button>
-  <button id="btnModeCloud">Cloud Concepts</button>
-  <button id="btnModeTech">Tech & Services</button>
-  <button id="btnModeSec">Security + Billing</button>
+<!-- DASHBOARD VIEW -->
+<div id="dashboard">
+  <div class="stats-grid">
+    <div class="stat-box">
+      <h3>🔥 Câu yếu / Sai</h3>
+      <h2 id="statWrong" style="color: #ef4444;">0</h2>
+      <button id="btnReviewWrong" class="btn-action">Ôn câu sai</button>
+    </div>
+    <div class="stat-box">
+      <h3>📅 Cần ôn hôm nay</h3>
+      <h2 id="statToday" style="color: #f59e0b;">0</h2>
+      <button id="btnReviewToday" class="btn-action">Ôn ngay</button>
+    </div>
+    <div class="stat-box">
+      <h3>📊 Tiến độ tổng</h3>
+      <h2 id="statTotal" style="color: #3b82f6;">0%</h2>
+      <button id="btnModeAll" class="btn-action">Học trộn</button>
+    </div>
+  </div>
+
+  <div id="resumeBox" class="hidden resume-box">
+    <h3>Tiếp tục phiên học trước?</h3>
+    <button id="btnResume" class="btn-success">▶ Tiếp tục làm</button>
+    <button id="btnClearSession" class="btn-danger">Bỏ qua</button>
+  </div>
+
+  <h2>Chế độ thi thử (Ưu tiên câu yếu)</h2>
+  <div class="action-row">
+    <button id="btnMock10">10 Câu</button>
+    <button id="btnMock20">20 Câu</button>
+    <button id="btnMock30">30 Câu</button>
+    <button id="btnMock65">65 Câu (Full)</button>
+  </div>
+
+  <h2>Luyện tập theo Chủ đề</h2>
+  <div class="action-row">
+    <button id="btnModeCloud">Cloud Concepts</button>
+    <button id="btnModeTech">Tech & Services</button>
+    <button id="btnModeSec">Security + Billing</button>
+  </div>
 </div>
 
-<hr>
-
+<!-- QUIZ VIEW -->
 <div id="quizContainer" class="hidden">
-  <h2 id="question"></h2>
+  <div class="quiz-header">
+    <button id="btnBackHome">🏠 Trở về Dashboard</button>
+    <span id="quizProgress" style="font-weight: bold; color: #555;"></span>
+  </div>
 
+  <h2 id="question"></h2>
   <div id="options"></div>
 
   <div class="tabs">
@@ -34,22 +71,15 @@
   <div id="note" class="hidden info-box"></div>
 
   <br>
-  <button id="btnNext">Next Question ➡️</button>
+  <button id="btnNext" class="btn-next hidden">Tiếp tục ➡️</button>
 </div>
 
-<hr>
-
-<div>
-  <h2>Progress Tracker</h2>
-  <pre id="progress"></pre>
-</div>
-
-<!-- Đã sửa thành v=3 để ép Github Pages nhận file mới nhất -->
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-<script src="progress.js?v=3"></script>
-<script src="dataLoader.js?v=3"></script>
-<script src="quizEngine.js?v=3"></script>
-<script src="app.js?v=3"></script>
+<script src="progress.js?v=4"></script>
+<script src="dataLoader.js?v=4"></script>
+<script src="quizEngine.js?v=4"></script>
+<script src="app.js?v=4"></script>
 
 </body>
 </html>
