@@ -3,89 +3,140 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AWS Adaptive Flashcards</title>
-  <link rel="stylesheet" href="style.css?v=5">
+  <title>Premium Adaptive Flashcards</title>
+  <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 
-<h1>🚀 AWS Adaptive Quiz</h1>
+<!-- Navbar & Tabs -->
+<nav class="glass-nav">
+  <div class="nav-tabs" id="quizTabs">
+    <!-- Tabs will be generated here -->
+  </div>
+  <button id="btnManageFiles" class="btn-manage">⚙️ Quản lý Dữ Liệu</button>
+</nav>
 
-<!-- MÀN HÌNH LOADING MỚI -->
-<div id="loadingScreen" style="text-align: center; margin-top: 50px;">
-  <h2 style="color: #3b82f6;">⏳ Đang tải dữ liệu câu hỏi...</h2>
-  <p>Vui lòng đợi vài giây...</p>
+<!-- Main App Area -->
+<div class="main-content">
+
+  <!-- MÀN HÌNH LOADING -->
+  <div id="loadingScreen" class="glass-card" style="text-align: center; margin-top: 50px;">
+    <h2 style="color: var(--primary);">⏳ Đang tải dữ liệu câu hỏi...</h2>
+    <p>Vui lòng đợi vài giây...</p>
+  </div>
+
+  <!-- DASHBOARD VIEW -->
+  <div id="dashboard" class="hidden">
+    <div class="glass-card">
+      <h2 id="dashboardTitle">🚀 Dashboard</h2>
+      
+      <div class="stats-grid">
+        <div class="stat-box">
+          <h3>🔥 Câu yếu / Sai</h3>
+          <h2 id="statWrong" style="color: var(--danger);">0</h2>
+          <button id="btnReviewWrong" class="btn-outline" style="width:100%; margin-top:1rem;">Ôn câu sai</button>
+        </div>
+        <div class="stat-box">
+          <h3>📅 Cần ôn hôm nay</h3>
+          <h2 id="statToday" style="color: var(--warning);">0</h2>
+          <button id="btnReviewToday" class="btn-outline" style="width:100%; margin-top:1rem;">Ôn ngay</button>
+        </div>
+        <div class="stat-box">
+          <h3>📊 Tiến độ tổng</h3>
+          <h2 id="statTotal" style="color: var(--primary);">0%</h2>
+          <button id="btnModeAll" class="btn-outline" style="width:100%; margin-top:1rem;">Học trộn</button>
+        </div>
+      </div>
+
+      <div id="resumeBox" class="hidden glass-card" style="background: rgba(16, 185, 129, 0.1); border-color: var(--success);">
+        <h3>Tiếp tục phiên học trước?</h3>
+        <div style="display:flex; gap: 1rem; margin-top: 1rem;">
+          <button id="btnResume" class="btn-success">▶ Tiếp tục làm</button>
+          <button id="btnClearSession" class="btn-danger">Bỏ qua</button>
+        </div>
+      </div>
+
+      <h2>Chế độ thi thử (Ưu tiên câu yếu)</h2>
+      <div class="action-row">
+        <button id="btnMock10">10 Câu</button>
+        <button id="btnMock20">20 Câu</button>
+        <button id="btnMock30">30 Câu</button>
+        <button id="btnMock65">Full (Tất cả)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ VIEW -->
+  <div id="quizContainer" class="hidden glass-card">
+    <div class="quiz-header">
+      <button id="btnBackHome" class="btn-outline">🏠 Trở về Dashboard</button>
+      <span id="quizProgress" style="font-weight: 600; color: var(--text-muted);"></span>
+    </div>
+
+    <h2 id="question" class="question-text"></h2>
+    <div id="options"></div>
+
+    <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+      <button id="btnToggleExplain" class="btn-outline" style="flex:1;">Hiện Giải thích</button>
+      <button id="btnToggleNote" class="btn-outline" style="flex:1;">Hiện Ghi chú</button>
+    </div>
+
+    <div id="explain" class="hidden info-box"></div>
+    <div id="note" class="hidden info-box"></div>
+
+    <div style="text-align: right; margin-top: 2rem;">
+      <button id="btnNext" class="btn-primary hidden">Tiếp tục ➡️</button>
+    </div>
+  </div>
+
 </div>
 
-<!-- DASHBOARD VIEW (Mặc định ẩn) -->
-<div id="dashboard" class="hidden">
-  <div class="stats-grid">
-    <div class="stat-box">
-      <h3>🔥 Câu yếu / Sai</h3>
-      <h2 id="statWrong" style="color: #ef4444;">0</h2>
-      <button id="btnReviewWrong" class="btn-action">Ôn câu sai</button>
+<!-- Manage Files Modal -->
+<div id="manageModal" class="modal-backdrop hidden">
+  <div class="modal-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <h2>⚙️ Quản lý Dữ liệu Quiz</h2>
+      <button id="btnCloseManage" class="btn-outline" style="padding: 0.25rem 0.5rem;">✖</button>
     </div>
-    <div class="stat-box">
-      <h3>📅 Cần ôn hôm nay</h3>
-      <h2 id="statToday" style="color: #f59e0b;">0</h2>
-      <button id="btnReviewToday" class="btn-action">Ôn ngay</button>
+    
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+      Bạn có thể thêm Tab chủ đề mới, tải lên file Excel từ máy tính của bạn để học ngay. Dữ liệu sẽ được lưu trong trình duyệt.
+    </p>
+
+    <div id="configList" style="margin-bottom: 2rem;">
+      <!-- Custom config items will render here -->
     </div>
-    <div class="stat-box">
-      <h3>📊 Tiến độ tổng</h3>
-      <h2 id="statTotal" style="color: #3b82f6;">0%</h2>
-      <button id="btnModeAll" class="btn-action">Học trộn</button>
+
+    <hr style="border:0; border-top: 1px solid var(--border); margin-bottom: 1.5rem;">
+
+    <h3>➕ Thêm Tab Quiz Mới</h3>
+    <div class="form-group">
+      <label>Tên Tab (Ví dụ: ReactJS Quiz)</label>
+      <input type="text" id="newTabName" placeholder="Nhập tên chủ đề...">
     </div>
+    <div class="form-group">
+      <label>Đường dẫn File (Cách nhau bởi dấu phẩy ,)</label>
+      <input type="text" id="newTabPaths" placeholder="VD: raw_quiz_vt_construct/file1.xlsx, raw_quiz_vt_construct/file2.xlsx">
+    </div>
+    <div class="form-group">
+      <label>Loại Parser (Cách đọc file)</label>
+      <select id="newTabParser">
+        <option value="default">Default (Cột Question, Option A, B, C, D, Correct Answer)</option>
+        <option value="color-highlight">VT Construct (Đọc màu highlight làm đáp án)</option>
+      </select>
+    </div>
+    <button id="btnAddNewTab" class="btn-success" style="width: 100%;">Tạo Tab & Tải Dữ liệu</button>
+    <button id="btnResetDefault" class="btn-danger" style="width: 100%; margin-top: 1rem;">Khôi phục mặc định ban đầu</button>
   </div>
-
-  <div id="resumeBox" class="hidden resume-box">
-    <h3>Tiếp tục phiên học trước?</h3>
-    <button id="btnResume" class="btn-success">▶ Tiếp tục làm</button>
-    <button id="btnClearSession" class="btn-danger">Bỏ qua</button>
-  </div>
-
-  <h2>Chế độ thi thử (Ưu tiên câu yếu)</h2>
-  <div class="action-row">
-    <button id="btnMock10">10 Câu</button>
-    <button id="btnMock20">20 Câu</button>
-    <button id="btnMock30">30 Câu</button>
-    <button id="btnMock65">65 Câu (Full)</button>
-  </div>
-
-  <h2>Luyện tập theo Chủ đề</h2>
-  <div class="action-row">
-    <button id="btnModeCloud">Cloud Concepts</button>
-    <button id="btnModeTech">Tech & Services</button>
-    <button id="btnModeSec">Security + Billing</button>
-  </div>
-</div>
-
-<!-- QUIZ VIEW -->
-<div id="quizContainer" class="hidden">
-  <div class="quiz-header">
-    <button id="btnBackHome">🏠 Trở về Dashboard</button>
-    <span id="quizProgress" style="font-weight: bold; color: #555;"></span>
-  </div>
-
-  <h2 id="question"></h2>
-  <div id="options"></div>
-
-  <div class="tabs">
-    <button id="btnToggleExplain">Show/Hide Explanation</button>
-    <button id="btnToggleNote">Show/Hide Note</button>
-  </div>
-
-  <div id="explain" class="hidden info-box"></div>
-  <div id="note" class="hidden info-box"></div>
-
-  <br>
-  <button id="btnNext" class="btn-next hidden">Tiếp tục ➡️</button>
 </div>
 
 <!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-<script src="progress.js?v=5"></script>
-<script src="dataLoader.js?v=5"></script>
-<script src="quizEngine.js?v=5"></script>
-<script src="app.js?v=5"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<script src="config.js?v=6"></script>
+<script src="progress.js?v=6"></script>
+<script src="dataLoader.js?v=6"></script>
+<script src="quizEngine.js?v=6"></script>
+<script src="app.js?v=6"></script>
 
 </body>
 </html>

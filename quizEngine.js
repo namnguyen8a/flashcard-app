@@ -27,7 +27,8 @@ function saveSession() {
   localStorage.setItem("currentSession", JSON.stringify({
     mode: currentMode,
     quizIds: currentQuizIds,
-    index: currentIndex
+    index: currentIndex,
+    quizId: currentActiveQuizId
   }));
 }
 
@@ -58,13 +59,15 @@ function startQuiz(mode, size = null) {
   currentMode = mode;
   let rawQs = [];
 
-  if (mode === "wrong") rawQs = getWrongQuestions(allQuestions);
-  else if (mode === "review") rawQs = getReviewTodayQuestions(allQuestions);
-  else if (mode === "all") rawQs = allQuestions;
+  let allQs = getAllQuestions();
+
+  if (mode === "wrong") rawQs = getWrongQuestions(allQs);
+  else if (mode === "review") rawQs = getReviewTodayQuestions(allQs);
+  else if (mode === "all") rawQs = allQs;
   else if (mode === "cloud" || mode === "tech" || mode === "security") {
-    rawQs = allQuestions.filter(q => q.topic === mode);
+    rawQs = allQs.filter(q => q.topic === mode);
   } else if (mode.startsWith("mock")) {
-    rawQs = allQuestions; // Mock lấy toàn bộ để smart shuffle
+    rawQs = allQs; // Mock lấy toàn bộ để smart shuffle
   }
 
   // 4. Nếu không có câu nào (ví dụ ấn ôn câu sai mà chưa có)
@@ -88,7 +91,7 @@ function startQuiz(mode, size = null) {
 }
 
 function getQuestionById(id) {
-  return allQuestions.find(q => q.id === id);
+  return getAllQuestions().find(q => q.id === id);
 }
 
 function renderQuestion() {
@@ -109,12 +112,15 @@ function renderQuestion() {
   optDiv.innerHTML = "";
   document.getElementById("btnNext").classList.add("hidden");
 
-  ["A","B","C","D"].forEach((label, i) => {
-    if (!q.options[i]) return;
+  const optionLabels = ["A", "B", "C", "D", "E", "F"];
+  
+  q.options.forEach((optText, i) => {
+    if (!optText) return;
+    const label = optionLabels[i] || String(i);
 
     let btn = document.createElement("div");
     btn.className = "option";
-    btn.innerText = `${label}. ${q.options[i]}`;
+    btn.innerText = `${label}. ${optText}`;
     btn.dataset.label = label;
 
     btn.addEventListener("click", () => {

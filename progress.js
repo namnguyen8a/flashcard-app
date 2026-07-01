@@ -47,14 +47,17 @@ function getReviewTodayQuestions(allQs) {
   });
 }
 
-function getGeneralStats() {
+function getGeneralStats(quizId) {
   const data = getProgressData();
   let totalSeen = 0;
   let totalCorrect = 0;
   
-  Object.values(data).forEach(p => {
-    totalSeen += p.seen;
-    totalCorrect += p.correct;
+  Object.entries(data).forEach(([qid, p]) => {
+    // Only count stats for the currently active quiz
+    if (!quizId || qid.startsWith(quizId + "-")) {
+      totalSeen += p.seen;
+      totalCorrect += p.correct;
+    }
   });
 
   const accuracy = totalSeen === 0 ? 0 : Math.round((totalCorrect / totalSeen) * 100);
