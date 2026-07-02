@@ -36,6 +36,12 @@ function cleanCorrectAnswer(raw) {
   return str.trim();
 }
 
+function getActiveQuizConfig() {
+  const defaultQuizzes = DEFAULT_QUIZZES;
+  const customQuizzes = JSON.parse(localStorage.getItem("CUSTOM_QUIZZES")) || [];
+  return [...defaultQuizzes, ...customQuizzes];
+}
+
 async function loadFileWithExcelJS(fileObj, quizId, fileIndex) {
   // If file is an object from the file input
   let arrayBuffer;
@@ -195,13 +201,9 @@ async function loadFileWithExcelJS(fileObj, quizId, fileIndex) {
 
 async function loadAllData() {
   allQuestionsMap = {};
-  
-  let userConfig = JSON.parse(localStorage.getItem("USER_QUIZ_CONFIG"));
-  if (!userConfig || userConfig.length === 0) {
-    userConfig = DEFAULT_QUIZZES;
-  }
+  const activeConfig = getActiveQuizConfig();
 
-  for (const quiz of userConfig) {
+  for (const quiz of activeConfig) {
     allQuestionsMap[quiz.id] = [];
     let fileIdx = 0;
     for (const fileObj of quiz.files) {
@@ -216,8 +218,8 @@ async function loadAllData() {
   }
 
   // Set default active quiz to the first one
-  if (userConfig.length > 0) {
-    currentActiveQuizId = userConfig[0].id;
+  if (activeConfig.length > 0) {
+    currentActiveQuizId = activeConfig[0].id;
   }
 }
 
