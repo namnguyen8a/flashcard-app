@@ -22,7 +22,7 @@ const DEFAULT_QUIZZES = [
     id: "vt_construct_vhls",
     name: "VT Construct - VHLS",
     files: [
-      { path: "raw_quiz_vt_construct/1.2. CTr_ Ket cau NHCH thi trac nghiem VHLS_thi het han HDTV 2025 (1).xls", type: "number-answer" }
+      { path: "raw_quiz_vt_construct/vt_construct_vhls_2025.xls", type: "number-answer" }
     ]
   }
 ];
