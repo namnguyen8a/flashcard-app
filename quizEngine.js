@@ -112,7 +112,11 @@ function renderQuestion() {
   optDiv.innerHTML = "";
   document.getElementById("btnNext").classList.add("hidden");
 
+  const correctAnswers = q.correct.split(",").map(x => x.trim()).filter(x => x);
+  const isMultiple = correctAnswers.length > 1;
+
   const optionLabels = ["A", "B", "C", "D", "E", "F"];
+  let selectedLabels = [];
   
   q.options.forEach((optText, i) => {
     if (!optText) return;
@@ -124,7 +128,38 @@ function renderQuestion() {
     btn.dataset.label = label;
 
     btn.addEventListener("click", () => {
-      selectAnswer(btn, label === q.correct, q.id, q.correct);
+      if (hasAnswered) return;
+      
+      if (isMultiple) {
+        if (selectedLabels.includes(label)) {
+          selectedLabels = selectedLabels.filter(l => l !== label);
+          btn.classList.remove("selected");
+        } else {
+          selectedLabels.push(label);
+          btn.classList.add("selected");
+        }
+
+        // Add or remove submit button dynamically
+        let submitBtn = document.getElementById("btnSubmitMultiple");
+        if (selectedLabels.length > 0) {
+          if (!submitBtn) {
+            submitBtn = document.createElement("button");
+            submitBtn.id = "btnSubmitMultiple";
+            submitBtn.className = "btn-success";
+            submitBtn.innerText = "Xác nhận chọn";
+            submitBtn.style.marginTop = "1rem";
+            submitBtn.style.width = "100%";
+            submitBtn.onclick = () => {
+              submitMultipleAnswers(selectedLabels, correctAnswers);
+            };
+            optDiv.appendChild(submitBtn);
+          }
+        } else {
+          if (submitBtn) submitBtn.remove();
+        }
+      } else {
+        selectAnswer(btn, label === q.correct, q.id, q.correct);
+      }
     });
 
     optDiv.appendChild(btn);
@@ -142,12 +177,14 @@ function selectAnswer(btn, isCorrect, qId, correctLabel) {
   if (hasAnswered) return;
   hasAnswered = true;
 
+  const correctList = correctLabel.split(",").map(x => x.trim()).filter(x => x);
+
   if (isCorrect) {
     btn.classList.add("correct");
   } else {
     btn.classList.add("wrong");
     document.querySelectorAll(".option").forEach(opt => {
-      if (opt.dataset.label === correctLabel) {
+      if (correctList.includes(opt.dataset.label)) {
         opt.classList.add("correct");
       }
     });
@@ -157,6 +194,30 @@ function selectAnswer(btn, isCorrect, qId, correctLabel) {
   document.getElementById("btnNext").classList.remove("hidden");
   
   updateProgress(qId, isCorrect);
+}
+
+function submitMultipleAnswers(selected, correctList) {
+  if (hasAnswered) return;
+  hasAnswered = true;
+
+  const submitBtn = document.getElementById("btnSubmitMultiple");
+  if (submitBtn) submitBtn.remove();
+
+  const isAllCorrect = selected.length === correctList.length && selected.every(l => correctList.includes(l));
+
+  document.querySelectorAll(".option").forEach(opt => {
+    const label = opt.dataset.label;
+    if (correctList.includes(label)) {
+      opt.classList.add("correct");
+    } else if (selected.includes(label)) {
+      opt.classList.add("wrong");
+    }
+  });
+
+  document.getElementById("explain").classList.remove("hidden");
+  document.getElementById("btnNext").classList.remove("hidden");
+  
+  updateProgress(currentQuizIds[currentIndex], isAllCorrect);
 }
 
 function nextQuestion() {

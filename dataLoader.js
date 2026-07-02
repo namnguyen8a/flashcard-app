@@ -47,24 +47,19 @@ async function loadFileWithExcelJS(fileObj, quizId, fileIndex) {
     arrayBuffer = await res.arrayBuffer();
   }
 
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(arrayBuffer);
-  
-  const worksheet = workbook.worksheets[0];
-  const questions = [];
+  const isXls = fileObj.path && fileObj.path.toLowerCase().endsWith(".xls");
 
-  let headerMap = {}; // colNum -> headerName
+  // ExcelJS chỉ hỗ trợ .xlsx. Nếu là .xls hoặc có type là number-answer, ta dùng SheetJS (XLSX)
+  if (fileObj.type === "color-highlight" && !isXls) {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(arrayBuffer);
+    
+    const worksheet = workbook.worksheets[0];
+    const questions = [];
 
-  worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-    if (rowNumber === 1) {
-      row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-        headerMap[colNumber] = getCellValue(cell) || `col_${colNumber}`;
-      });
-      return;
-    }
+    worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+      if (rowNumber === 1) return; // Header
 
-    if (fileObj.type === "color-highlight") {
-      // Logic đặc biệt cho file VT Construct (Highlight màu)
       const qText = getCellValue(row.getCell(5)); // Cột 5: Nội dung câu hỏi (chỉ số 1-based)
       if (!qText || qText === "Nội dung câu hỏi") return; // Skip sub-headers
 
@@ -101,35 +96,101 @@ async function loadFileWithExcelJS(fileObj, quizId, fileIndex) {
           topic: "general"
         });
       }
+    });
+
+    return questions;
+
+  } else {
+    // Dùng SheetJS (XLSX) cho các trường hợp còn lại và file .xls
+    const workbook = XLSX.read(arrayBuffer, { type: "array" });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+    const questions = [];
+
+    if (fileObj.type === "number-answer" || isXls) {
+      let startRow = 0;
+      // Tìm dòng chứa câu hỏi đầu tiên
+      for (let i = 0; i < Math.min(rows.length, 15); i++) {
+        const row = rows[i];
+        if (row && (row[0] === 1 || String(row[0]).trim() === "1")) {
+          startRow = i;
+          break;
+        }
+      }
+
+      const optionLabels = ["A", "B", "C", "D", "E", "F"];
+
+      for (let i = startRow; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row || row.length < 10) continue;
+
+        const qText = String(row[7] || "").trim(); // Cột 7 (Unnamed: 7): Nội dung câu hỏi
+        const qType = String(row[8] || "").trim(); // Cột 8 (Unnamed: 8): Dạng câu hỏi (SC/MC)
+        const qAnsRaw = String(row[9] || "").trim(); // Cột 9 (Unnamed: 9): Đáp án số
+        
+        if (!qText || qText === "Nội dung câu hỏi" || !qType || (qType !== "SC" && qType !== "MC")) continue;
+
+        // Các phương án lựa chọn từ cột 10 đến 14
+        const options = [];
+        for (let c = 10; c <= 14; c++) {
+          const optVal = String(row[c] || "").trim();
+          if (optVal) {
+            options.push(optVal);
+          }
+        }
+
+        if (options.length === 0) continue;
+
+        // Parse đáp án số: ví dụ "12" -> "A, B", "3" -> "C"
+        const correctAnswers = [];
+        for (let j = 0; j < qAnsRaw.length; j++) {
+          const char = qAnsRaw[j];
+          if (char >= '1' && char <= '6') {
+            const letter = optionLabels[parseInt(char) - 1];
+            if (letter && !correctAnswers.includes(letter)) {
+              correctAnswers.push(letter);
+            }
+          }
+        }
+
+        questions.push({
+          id: `${quizId}-${fileIndex}-${i}`,
+          question: qText,
+          options: options,
+          correct: correctAnswers.join(", "),
+          explain: "",
+          note: String(row[5] || "").trim(), // Kiến thức / chủ đề
+          topic: "general"
+        });
+      }
 
     } else {
-      // Default parser (Tương thích với form cũ)
-      let rowValues = {};
-      row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-        rowValues[headerMap[colNumber]] = getCellValue(cell);
-      });
+      // Default SheetJS parser
+      const rowsJson = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+      rowsJson.forEach((row, index) => {
+        const question = getCellRobust(row, ["Question", "question", "Câu hỏi"]);
+        if (!question) return;
 
-      const question = getCellRobust(rowValues, ["Question", "question", "Câu hỏi"]);
-      if (!question) return;
-
-      questions.push({
-        id: `${quizId}-${fileIndex}-${rowNumber}`,
-        question: question,
-        options: [
-          getCellRobust(rowValues, ["Option A", "A"]),
-          getCellRobust(rowValues, ["Option B", "B"]),
-          getCellRobust(rowValues, ["Option C", "C"]),
-          getCellRobust(rowValues, ["Option D", "D"])
-        ].filter(x => x), // Remove empty options
-        correct: cleanCorrectAnswer(getCellRobust(rowValues, ["Correct Answer", "Answer", "Đáp án"])),
-        explain: getCellRobust(rowValues, ["Detail Explaination", "Detail Explanation", "Explain", "Giải thích"]),
-        note: getCellRobust(rowValues, ["Note", "Ghi chú"]),
-        topic: detectTopic(fileObj, rowValues)
+        questions.push({
+          id: `${quizId}-${fileIndex}-${index}`,
+          question: question,
+          options: [
+            getCellRobust(row, ["Option A", "A"]),
+            getCellRobust(row, ["Option B", "B"]),
+            getCellRobust(row, ["Option C", "C"]),
+            getCellRobust(row, ["Option D", "D"])
+          ].filter(x => x),
+          correct: cleanCorrectAnswer(getCellRobust(row, ["Correct Answer", "Answer", "Đáp án"])),
+          explain: getCellRobust(row, ["Detail Explaination", "Detail Explanation", "Explain", "Giải thích"]),
+          note: getCellRobust(row, ["Note", "Ghi chú"]),
+          topic: detectTopic(fileObj, row)
+        });
       });
     }
-  });
 
-  return questions;
+    return questions;
+  }
 }
 
 async function loadAllData() {

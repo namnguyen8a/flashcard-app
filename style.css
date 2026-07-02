@@ -211,6 +211,12 @@ button:active {
   border-color: var(--text-muted);
 }
 
+.option.selected {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: var(--primary);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+
 .option.correct {
   background: rgba(16, 185, 129, 0.2);
   border-color: var(--success);
